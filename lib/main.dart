@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kakao_profile_d5354/src/controller/profile_controller.dart';
 import 'package:flutter_kakao_profile_d5354/src/profile.dart';
 import 'package:get/get.dart';
 
@@ -17,6 +18,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
+      initialBinding: BindingsBuilder(() {
+        Get.lazyPut<ProfileController>(() => ProfileController());
+      }),
       home: Profile(),
     );
   }

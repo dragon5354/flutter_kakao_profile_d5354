@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kakao_profile_d5354/src/controller/profile_controller.dart';
 import 'package:get/get.dart';
 
-class Profile extends StatelessWidget {
+// ProfileController에서 관리
+class Profile extends GetView<ProfileController> {
   const Profile({super.key});
 
   // 헤더
@@ -18,7 +20,7 @@ class Profile extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () => print("프로필 편집 취소"),
+              onTap: () => controller.toggleEditProfile(),
               child: Row(
                 children: [
                   Icon(
@@ -69,12 +71,41 @@ class Profile extends StatelessWidget {
     return Container(
       width: 120,
       height: 120,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Image.network(
-          "https://i.stack.imgur.com/l60Hf.png",
-          fit: BoxFit.cover,
-        ),
+      child: Stack(
+        children: [
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: Container(
+                width: 100,
+                height: 100,
+                child: Image.network(
+                  "https://i.stack.imgur.com/l60Hf.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          controller.isEditMyProfile.value
+              ? Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      padding: EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle, color: Colors.white),
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 20,
+                      ),
+                    ),
+                  ))
+              : Container()
+        ],
       ),
     );
   }
@@ -106,6 +137,57 @@ class Profile extends StatelessWidget {
     );
   }
 
+  // 프로필 정보 버튼 눌렀을 때 토글식 전환
+  Widget _editProfileInfo() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          _partProfileInfo("이름들어갈부분", () {}),
+          _partProfileInfo("한줄문구들어갈부분", () {}),
+        ],
+      ),
+    );
+  }
+
+  // 프로필 정보 편집 내부 중복된 부분
+  Widget _partProfileInfo(String value, Function()? ontap) {
+    return GestureDetector(
+      onTap: ontap,
+      child: Stack(
+        children: [
+          Container(
+            height: 45,
+            decoration: BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(width: 1, color: Colors.white))),
+          ),
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+              right: 0,
+              bottom: 15,
+              child: Icon(
+                Icons.edit,
+                color: Colors.white,
+                size: 18,
+              ))
+        ],
+      ),
+    );
+  }
+
   // 프로필
   Widget _myProfile() {
     return Positioned(
@@ -113,12 +195,16 @@ class Profile extends StatelessWidget {
       right: 0,
       left: 0,
       child: Container(
-        height: 200,
-        child: Column(
-          children: [
-            _profileImage(),
-            _profileInfo(),
-          ],
+        height: 220,
+        child: Obx(
+          () => Column(
+            children: [
+              _profileImage(),
+              controller.isEditMyProfile.value
+                  ? _editProfileInfo()
+                  : _profileInfo(),
+            ],
+          ),
         ),
       ),
     );
@@ -148,27 +234,33 @@ class Profile extends StatelessWidget {
 
   // 하단
   Widget _footer() {
-    return Positioned(
-      bottom: 0,
-      right: 0,
-      left: 0,
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-            border: Border(
-                top: BorderSide(
-          width: 1,
-          color: Colors.white.withOpacity(0.4),
-        ))),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _oneButton(Icons.chat_bubble, "나와의 채팅", () {}),
-            _oneButton(Icons.edit, "프로필 편집", () {}),
-            _oneButton(Icons.chat_bubble_outline, "카카오스토리", () {}),
-          ],
-        ),
-      ),
+    // 값에 따라 뜨게 하기 vs 안뜨게 하기 전환
+    return Obx(
+      () => controller.isEditMyProfile.value
+          ? Container()
+          : Positioned(
+              bottom: 0,
+              right: 0,
+              left: 0,
+              child: Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    border: Border(
+                        top: BorderSide(
+                  width: 1,
+                  color: Colors.white.withOpacity(0.4),
+                ))),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _oneButton(Icons.chat_bubble, "나와의 채팅", () {}),
+                    _oneButton(
+                        Icons.edit, "프로필 편집", controller.toggleEditProfile),
+                    _oneButton(Icons.chat_bubble_outline, "카카오스토리", () {}),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
