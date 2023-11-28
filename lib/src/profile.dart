@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_kakao_profile_d5354/src/components/text_editor_widget.dart';
 import 'package:flutter_kakao_profile_d5354/src/controller/profile_controller.dart';
 import 'package:get/get.dart';
 
@@ -141,11 +142,29 @@ class Profile extends GetView<ProfileController> {
   Widget _editProfileInfo() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        children: [
-          _partProfileInfo("이름들어갈부분", () {}),
-          _partProfileInfo("한줄문구들어갈부분", () {}),
-        ],
+      child: Obx(
+        () => Column(
+          children: [
+            _partProfileInfo(controller.myProfile.value.name, () async {
+              String value = await Get.dialog(TextEditorWidget(
+                text: controller.myProfile.value.name,
+              ));
+              // null check 되있어서 항상 true긴 한데, 강의 내용 때문에 안 헷갈리게 일단 이대로 둠
+              if (value != null) {
+                controller.updateName(value);
+              }
+            }),
+            _partProfileInfo(controller.myProfile.value.discription, () async {
+              String value = await Get.dialog(TextEditorWidget(
+                text: controller.myProfile.value.discription,
+              ));
+              // null check 되있어서 항상 true긴 한데, 강의 내용 때문에 안 헷갈리게 일단 이대로 둠
+              if (value != null) {
+                controller.updateDiscription(value);
+              }
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -268,6 +287,8 @@ class Profile extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xff3f3f3f),
+      // resizeToAvoidBottomPadding이 없어지고, Inset으로 바뀐 듯.
+      resizeToAvoidBottomInset: false,
       body: Container(
         child: Stack(children: [
           _backgroundImage(),
