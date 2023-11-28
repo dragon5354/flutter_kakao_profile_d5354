@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_kakao_profile_d5354/src/components/text_editor_widget.dart';
+import 'package:flutter_kakao_profile_d5354/src/controller/image_crop_controller.dart';
 import 'package:flutter_kakao_profile_d5354/src/controller/profile_controller.dart';
 import 'package:get/get.dart';
 
@@ -15,35 +16,51 @@ class Profile extends GetView<ProfileController> {
       top: Get.mediaQuery.padding.top,
       right: 0,
       left: 0,
-      child: Container(
-        padding: EdgeInsets.all(15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () => controller.toggleEditProfile(),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                  Text(
-                    "프로필 편집",
-                    style: TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () => print("프로필 편집 저장"),
-              child: Text(
-                "완료",
-                style: TextStyle(fontSize: 14, color: Colors.white),
-              ),
-            ),
-          ],
+      child: Obx(
+        () => Container(
+          padding: EdgeInsets.all(15),
+          child: controller.isEditMyProfile.value
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: controller.rollback,
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          Text(
+                            "프로필 편집",
+                            style: TextStyle(fontSize: 14, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => print("프로필 편집 저장"),
+                      child: Text(
+                        "완료",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(Icons.close_sharp, color: Colors.white),
+                    Row(
+                      children: [
+                        Icon(Icons.qr_code, color: Colors.white),
+                        SizedBox(width: 10),
+                        Icon(Icons.settings, color: Colors.white),
+                      ],
+                    )
+                  ],
+                ),
         ),
       ),
     );
@@ -69,44 +86,52 @@ class Profile extends GetView<ProfileController> {
 
   // 프로필 내부 이미지
   Widget _profileImage() {
-    return Container(
-      width: 120,
-      height: 120,
-      child: Stack(
-        children: [
-          Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(40),
-              child: Container(
-                width: 100,
-                height: 100,
-                child: Image.network(
-                  "https://i.stack.imgur.com/l60Hf.png",
-                  fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        controller.pickImage();
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        child: Stack(
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  child: controller.myProfile.value.avatarFile==null ? Image.network(
+                    "https://i.stack.imgur.com/l60Hf.png",
+                    fit: BoxFit.cover,
+                  ) : Image.file(
+                    controller.myProfile.value.avatarFile!,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
-          ),
-          controller.isEditMyProfile.value
-              ? Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    alignment: Alignment.bottomRight,
+            controller.isEditMyProfile.value
+                ? Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
                     child: Container(
-                      padding: EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle, color: Colors.white),
-                      child: Icon(
-                        Icons.camera_alt,
-                        size: 20,
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: Colors.white),
+                        child: Icon(
+                          Icons.camera_alt,
+                          size: 20,
+                        ),
                       ),
-                    ),
-                  ))
-              : Container()
-        ],
+                    ))
+                : Container()
+          ],
+        ),
       ),
     );
   }
@@ -118,7 +143,7 @@ class Profile extends GetView<ProfileController> {
         Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Text(
-            "이름들어갈부분",
+            controller.myProfile.value.name!,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w400,
@@ -127,7 +152,7 @@ class Profile extends GetView<ProfileController> {
           ),
         ),
         Text(
-          "한줄문구들어갈부분",
+          controller.myProfile.value.discription!,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -145,18 +170,18 @@ class Profile extends GetView<ProfileController> {
       child: Obx(
         () => Column(
           children: [
-            _partProfileInfo(controller.myProfile.value.name, () async {
+            _partProfileInfo(controller.myProfile.value.name!, () async {
               String value = await Get.dialog(TextEditorWidget(
-                text: controller.myProfile.value.name,
+                text: controller.myProfile.value.name!,
               ));
               // null check 되있어서 항상 true긴 한데, 강의 내용 때문에 안 헷갈리게 일단 이대로 둠
               if (value != null) {
                 controller.updateName(value);
               }
             }),
-            _partProfileInfo(controller.myProfile.value.discription, () async {
+            _partProfileInfo(controller.myProfile.value.discription!, () async {
               String value = await Get.dialog(TextEditorWidget(
-                text: controller.myProfile.value.discription,
+                text: controller.myProfile.value.discription!,
               ));
               // null check 되있어서 항상 true긴 한데, 강의 내용 때문에 안 헷갈리게 일단 이대로 둠
               if (value != null) {
