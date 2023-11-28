@@ -3,6 +3,11 @@ import 'dart:io';
 import 'package:flutter_kakao_profile_d5354/src/controller/image_crop_controller.dart';
 import 'package:flutter_kakao_profile_d5354/src/model/user_model.dart';
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
+
+
+// 이미지 crop할때 경우에 따라 다르게 하기
+enum ProfileImageType { THUMBNAIL, BACKGROUND }
 
 class ProfileController extends GetxController {
   RxBool isEditMyProfile = false.obs;
@@ -45,10 +50,22 @@ class ProfileController extends GetxController {
     });
   }
 
-  void pickImage() async {
-    if (isEditMyProfile.value) {
-      File file = await ImageCropController.to.selectImage();
-      myProfile.update((my) => my!.avatarFile = file);
+  void pickImage(ProfileImageType type) async {
+    if (!isEditMyProfile.value) return;
+    File? file = await ImageCropController.to.selectImage(type); 
+    switch (type) {
+      case ProfileImageType.THUMBNAIL:
+        myProfile.update((my) => my!.avatarFile = file);
+        break;
+      case ProfileImageType.BACKGROUND:
+        myProfile.update((my) => my!.backgroundFile = file);
+        break;
     }
+  }
+
+  // 바꾼 상태 저장
+  void save() {
+    originMyProfile = myProfile.value;
+    toggleEditProfile();
   }
 }

@@ -40,7 +40,7 @@ class Profile extends GetView<ProfileController> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => print("프로필 편집 저장"),
+                      onTap: controller.save,
                       child: Text(
                         "완료",
                         style: TextStyle(fontSize: 14, color: Colors.white),
@@ -75,10 +75,19 @@ class Profile extends GetView<ProfileController> {
       right: 0,
       left: 0,
       child: GestureDetector(
-        onTap: () => print("change my backgroundImage!"),
-        child: Container(
-          color: Colors.transparent,
-          // color: Colors.red,
+        onTap: () {
+          controller.pickImage(ProfileImageType.BACKGROUND);
+        },
+        child: Obx(
+          () => Container(
+            color: Colors.transparent,
+            child: controller.myProfile.value.backgroundFile == null
+                ? Container()
+                : Image.file(
+                    controller.myProfile.value.backgroundFile!,
+                    fit: BoxFit.cover,
+                  ),
+          ),
         ),
       ),
     );
@@ -88,7 +97,7 @@ class Profile extends GetView<ProfileController> {
   Widget _profileImage() {
     return GestureDetector(
       onTap: () {
-        controller.pickImage();
+        controller.pickImage(ProfileImageType.THUMBNAIL);
       },
       child: Container(
         width: 120,
@@ -101,13 +110,15 @@ class Profile extends GetView<ProfileController> {
                 child: Container(
                   width: 100,
                   height: 100,
-                  child: controller.myProfile.value.avatarFile==null ? Image.network(
-                    "https://i.stack.imgur.com/l60Hf.png",
-                    fit: BoxFit.cover,
-                  ) : Image.file(
-                    controller.myProfile.value.avatarFile!,
-                    fit: BoxFit.cover,
-                  ),
+                  child: controller.myProfile.value.avatarFile == null
+                      ? Image.network(
+                          "https://i.stack.imgur.com/l60Hf.png",
+                          fit: BoxFit.cover,
+                        )
+                      : Image.file(
+                          controller.myProfile.value.avatarFile!,
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
             ),
