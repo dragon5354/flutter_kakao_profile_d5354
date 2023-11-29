@@ -23,6 +23,7 @@ class MyApp extends StatelessWidget {
         Get.lazyPut<ProfileController>(() => ProfileController());
         Get.lazyPut<ImageCropController>(() => ImageCropController());
       }),
+      // 파이어베이스 기본설정 끝나면 여기서부터 수정 예정
       home: Profile(),
     );
   }
